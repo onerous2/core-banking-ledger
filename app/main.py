@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from decimal import Decimal
+from sqlalchemy import func
 import os
 
 from . import models, database
@@ -108,3 +109,19 @@ def transfer_money(from_id: int, to_id: int, amount: Decimal, db: Session = Depe
     except Exception as e:
         db.rollback()
         raise e
+    
+@app.get("/system/health")
+def check_system_integrity(db: Session = Depends(database.get_db)):
+    # 1. Проверка: Сумма всех LedgerEntry должна быть равна 0 (при переводах)
+    # Если есть только депозиты, то сумма LedgerEntry == Сумма балансов всех аккаунтов
+    total_ledger_sum = db.query(func.sum(models.LedgerEntry.amount)).scalar() or Decimal("0")
+    total_accounts_sum = db.query(func.sum(models.Account.balance)).scalar() or Decimal("0")
+    
+    is_healthy = total_ledger_sum == total_accounts_sum
+    
+    return {
+        "status": "healthy" if is_healthy else "corrupted",
+        "total_in_ledger": total_ledger_sum,
+        "total_on_accounts": total_accounts_sum,
+        "drift": total_ledger_sum - total_accounts_sum
+    }

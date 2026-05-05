@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = window.location.origin;
 
 // 1. Загрузка списка счетов (ОБНОВЛЕННАЯ ВЕРСИЯ)
 async function loadAccounts() {

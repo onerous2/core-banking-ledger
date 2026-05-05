@@ -4,3 +4,7 @@ sqlalchemy
 psycopg2-binary
 python-dotenv
 aiofiles
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
