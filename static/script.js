@@ -1,6 +1,6 @@
 const API_URL = 'http://127.0.0.1:8000';
 
-// 1. Загрузка списка счетов
+// 1. Загрузка списка счетов (ОБНОВЛЕННАЯ ВЕРСИЯ)
 async function loadAccounts() {
     try {
         const response = await fetch(`${API_URL}/accounts/`);
@@ -11,12 +11,17 @@ async function loadAccounts() {
         accounts.forEach(acc => {
             const card = document.createElement('div');
             card.className = 'account-card';
+            
+            // Заменяем старый внутренний HTML на новый с оберткой card-actions и двумя кнопками
             card.innerHTML = `
                 <button class="delete-btn" onclick="deleteAccount(${acc.id})" title="Закрыть счет">✖</button>
                 <div><strong>ID: ${acc.id}</strong></div>
                 <div style="margin: 5px 0; color: #64748b;">${acc.owner_name}</div>
                 <div class="balance">${acc.balance.toLocaleString()} ₽</div>
-                <button class="deposit-btn" onclick="makeDeposit(${acc.id})">Пополнить</button>
+                <div class="card-actions">
+                    <button class="deposit-btn" onclick="makeDeposit(${acc.id})">Пополнить</button>
+                    <button class="history-btn" onclick="showHistory(${acc.id})">📜 История</button>
+                </div>
             `;
             listElement.appendChild(card);
         });
@@ -97,3 +102,17 @@ async function makeTransfer() {
 
 // Первичная загрузка
 loadAccounts();
+
+async function showHistory(id) {
+    const response = await fetch(`${API_URL}/accounts/${id}/history`);
+    const history = await response.json();
+    
+    if (history.length === 0) return alert("Операций пока нет");
+
+    let historyText = history.map(h => 
+        `${h.amount > 0 ? '✅ +' : '🔴 '}${h.amount} ₽ | ${h.description}`
+    ).join('\n');
+
+    alert(`История счета №${id}:\n\n${historyText}`);
+    // Позже мы заменим alert на красивое окно
+}

@@ -60,6 +60,29 @@ def deposit_money(account_id: int, amount: Decimal, db: Session = Depends(databa
     db.commit()
     return {"status": "success"}
 
+@app.get("/accounts/{account_id}/history")
+def get_account_history(account_id: int, db: Session = Depends(database.get_db)):
+    # Проверяем, существует ли счет
+    account = db.query(models.Account).filter(models.Account.id == account_id).first()
+    if not account:
+        raise HTTPException(status_code=404, detail="Счет не найден")
+
+    # Ищем все записи в Ledger для этого счета
+    # Используем .join, чтобы сразу получить описание транзакции
+    history = db.query(models.LedgerEntry).filter(
+        models.LedgerEntry.account_id == account_id
+    ).join(models.Transaction).order_by(models.LedgerEntry.id.desc()).all()
+    
+    # Форматируем данные для фронтенда
+    return [
+        {
+            "id": entry.id,
+            "amount": float(entry.amount),
+            "description": entry.transaction.description,
+            "date": entry.transaction.created_at.strftime("%H:%M:%S") 
+        } for entry in history
+    ]
+
 @app.post("/transfer/")
 def transfer_money(from_id: int, to_id: int, amount: Decimal, db: Session = Depends(database.get_db)):
     try:
