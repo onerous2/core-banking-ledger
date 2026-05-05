@@ -45,6 +45,19 @@
         </div>
     </div>
 
+    <!-- Модальное окно истории -->
+<div id="history-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+        <h3>История операций</h3>
+        <div id="history-content" style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
+            <!-- Сюда JS вставит таблицу -->
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" onclick="closeHistory()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
     <script src="/static/script.js"></script>
 </body>
 </html>

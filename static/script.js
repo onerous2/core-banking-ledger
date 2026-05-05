@@ -17,7 +17,7 @@ async function loadAccounts() {
                 <button class="delete-btn" onclick="deleteAccount(${acc.id})" title="Закрыть счет">✖</button>
                 <div><strong>ID: ${acc.id}</strong></div>
                 <div style="margin: 5px 0; color: #64748b;">${acc.owner_name}</div>
-                <div class="balance">${acc.balance.toLocaleString()} ₽</div>
+                <div class="balance">${acc.balance.toLocaleString()} $</div>
                 <div class="card-actions">
                     <button class="deposit-btn" onclick="makeDeposit(${acc.id})">Пополнить</button>
                     <button class="history-btn" onclick="showHistory(${acc.id})">📜 История</button>
@@ -107,12 +107,39 @@ async function showHistory(id) {
     const response = await fetch(`${API_URL}/accounts/${id}/history`);
     const history = await response.json();
     
-    if (history.length === 0) return alert("Операций пока нет");
+    const container = document.getElementById('history-content');
+    
+    if (history.length === 0) {
+        container.innerHTML = "<p>Операций пока нет</p>";
+    } else {
+        let tableHtml = `
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.9rem;">
+                    <th style="padding: 10px 5px;">Время</th>
+                    <th>Описание</th>
+                    <th style="text-align: right;">Сумма</th>
+                </tr>
+        `;
+        
+        history.forEach(h => {
+            const color = h.amount > 0 ? "#10b981" : "#ef4444";
+            const prefix = h.amount > 0 ? "+" : "";
+            tableHtml += `
+                <tr style="border-bottom: 1px solid #f8fafc;">
+                    <td style="padding: 12px 5px; font-size: 0.85rem; color: #94a3b8;">${h.date}</td>
+                    <td style="font-size: 0.9rem;">${h.description}</td>
+                    <td style="text-align: right; font-weight: 600; color: ${color}">${prefix}${h.amount.toLocaleString()} ₽</td>
+                </tr>
+            `;
+        });
+        
+        tableHtml += "</table>";
+        container.innerHTML = tableHtml;
+    }
+    
+    document.getElementById('history-modal').style.display = 'flex';
+}
 
-    let historyText = history.map(h => 
-        `${h.amount > 0 ? '✅ +' : '🔴 '}${h.amount} ₽ | ${h.description}`
-    ).join('\n');
-
-    alert(`История счета №${id}:\n\n${historyText}`);
-    // Позже мы заменим alert на красивое окно
+function closeHistory() {
+    document.getElementById('history-modal').style.display = 'none';
 }
