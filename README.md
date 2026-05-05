@@ -1,19 +1,34 @@
 # Core Banking Ledger
 
-Микросервис для ведения банковского реестра на основе принципов двойной записи. 
+A microservice implementing a banking ledger based on double-entry bookkeeping principles. This project demonstrates a robust way to handle financial transactions with atomicity and data integrity.
 
-## Технологии
-- **Backend:** Python, FastAPI, PostgreSQL
-- **Database:** SQLite (SQLAlchemy ORM)
-- **Frontend:** HTML5, CSS3 (Inter font), Vanilla JavaScript
+## Overview
+This "Core Banking Ledger" is designed as a pet project to showcase backend development skills, specifically focusing on database consistency and the ACID principles. It provides a clean, responsive interface for managing accounts and executing transfers.
 
-## Функционал
-- Создание и удаление банковских счетов.
-- Пополнение баланса через эндпоинт депозита.
-- Переводы между счетами с атомарными транзакциями.
-- Полная история записей в Ledger (Главной книге).
+## Tech Stack
+- **Backend:** Python 3.10+, FastAPI, SQLAlchemy (ORM)
+- **Database:** SQLite (default) / PostgreSQL compatible
+- **Frontend:** HTML5, CSS3 (Inter UI), Vanilla JavaScript
+- **Dev Tools:** Git, VS Code
 
-## Как запустить
-1. Установите зависимости: `pip install fastapi uvicorn sqlalchemy`
-2. Запустите сервер: `uvicorn app.main:app --reload`
-3. Откройте `http://127.0.0.1:8000` в браузере.
+## Key Features
+- **Account Management:** Create new accounts with an initial owner name and a zero balance.
+- **Double-Entry Ledger:** Every movement of money is recorded as a set of ledger entries linked to a single transaction, ensuring the books always balance.
+- **Deposit System:** Easily top up account balances to simulate real-world cash inflows.
+- **Atomic Transfers:** Perform transfers between accounts using database transactions to prevent "lost money" scenarios.
+- **Responsive UI:** A modern, clean dashboard for managing accounts and viewing balances in real-time.
+
+## Project Structure
+- `app/main.py`: The FastAPI application containing all API endpoints and business logic.
+- `app/models.py`: Database schema definitions (Accounts, Transactions, LedgerEntries).
+- `app/database.py`: SQLAlchemy engine and session configuration.
+- `static/`: Frontend assets including the HTML dashboard, CSS styles, and JavaScript logic.
+
+## Getting Started
+
+### 1. Prerequisites
+Ensure you have Python installed. You will also need to install the following packages:
+```bash
+1. Install dependencies: `pip install fastapi uvicorn sqlalchemy`
+2. Launch the server: `uvicorn app.main:app --reload`
+3. Open `http://127.0.0.1:8000` in browser.
