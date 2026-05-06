@@ -37,15 +37,21 @@ def list_accounts(db: Session = Depends(database.get_db)):
 
 @app.delete("/accounts/{account_id}")
 def delete_account(account_id: int, db: Session = Depends(database.get_db)):
-    account = db.query(models.Account).filter(models.Account.id == account_id).first()
-    if not account:
-        raise HTTPException(status_code=404, detail="Счет не найден")
-    
-    # ИЗМЕНЕНО: Теперь мы НЕ удаляем LedgerEntry и Account! 
-    # Мы просто помечаем счет как неактивный.
+    #Ищем счет в базе
+    account=db.query(models.Account).filter(models.Account.id == account_id).first()
+
+    #2. Если счет не найден, возвращаем ошибку
+    if not account or not account.is_active:
+        raise HTTPException(
+            status_code = 404,
+            detail="Счет не найден или уже был закрыт ранее"
+        )
+    #3. Реализуем soft delete: для отчетности, даже удаленные счета должны сохраняться в базе, но помечаться как неактивные
     account.is_active = False
+
     db.commit()
-    return {"status": "success", "message": "Счет переведен в архив (Soft Delete)"}
+
+    return {"status": "success", "message": f"Счет {account_id} успешно удален (not_active)"}
 
 @app.post("/accounts/{account_id}/deposit")
 def deposit_money(account_id: int, amount: Decimal, db: Session = Depends(database.get_db)):
