@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, DateTime, func, Boolean
 from sqlalchemy.orm import relationship
 from .database import Base  # Импорт Base строго из database.py
 
@@ -9,6 +9,8 @@ class Account(Base):
     owner_name = Column(String, nullable=False)
     # Используем Numeric(18, 2) для точности до копеек (до 18 знаков всего, 2 после запятой)
     balance = Column(Numeric(precision=18, scale=2), default=0.0)
+    # ПОЛЕ ДЛЯ SOFT DELETE:
+    is_active = Column(Boolean, default=True)
 
 class Transaction(Base):
     __tablename__ = "transactions"

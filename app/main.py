@@ -32,25 +32,27 @@ def create_account(owner_name: str, initial_balance: Decimal = Decimal("0.0"), d
 
 @app.get("/accounts/")
 def list_accounts(db: Session = Depends(database.get_db)):
-    # Сортировка по ID, чтобы список не прыгал
-    return db.query(models.Account).order_by(models.Account.id).all()
+    # ИЗМЕНЕНО: Показываем только активные счета (is_active == True)
+    return db.query(models.Account).filter(models.Account.is_active == True).order_by(models.Account.id).all()
 
 @app.delete("/accounts/{account_id}")
 def delete_account(account_id: int, db: Session = Depends(database.get_db)):
     account = db.query(models.Account).filter(models.Account.id == account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Счет не найден")
-    # Удаляем историю операций перед удалением счета
-    db.query(models.LedgerEntry).filter(models.LedgerEntry.account_id == account_id).delete()
-    db.delete(account)
+    
+    # ИЗМЕНЕНО: Теперь мы НЕ удаляем LedgerEntry и Account! 
+    # Мы просто помечаем счет как неактивный.
+    account.is_active = False
     db.commit()
-    return {"status": "success"}
+    return {"status": "success", "message": "Счет переведен в архив (Soft Delete)"}
 
 @app.post("/accounts/{account_id}/deposit")
 def deposit_money(account_id: int, amount: Decimal, db: Session = Depends(database.get_db)):
-    account = db.query(models.Account).filter(models.Account.id == account_id).first()
+    # ИЗМЕНЕНО: Нельзя пополнять удаленный счет
+    account = db.query(models.Account).filter(models.Account.id == account_id, models.Account.is_active == True).first()
     if not account:
-        raise HTTPException(status_code=404, detail="Счет не найден")
+        raise HTTPException(status_code=404, detail="Счет не найден или находится в архиве")
     
     new_tx = models.Transaction(description=f"Deposit to {account_id}")
     db.add(new_tx)
@@ -63,18 +65,17 @@ def deposit_money(account_id: int, amount: Decimal, db: Session = Depends(databa
 
 @app.get("/accounts/{account_id}/history")
 def get_account_history(account_id: int, db: Session = Depends(database.get_db)):
-    # Проверяем, существует ли счет
+    # Проверяем, существует ли счет (оставил возможность смотреть историю удаленных счетов, 
+    # так как для аудита это полезно, но можно добавить проверку на is_active, если хочешь скрыть и историю)
     account = db.query(models.Account).filter(models.Account.id == account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="Счет не найден")
 
     # Ищем все записи в Ledger для этого счета
-    # Используем .join, чтобы сразу получить описание транзакции
     history = db.query(models.LedgerEntry).filter(
         models.LedgerEntry.account_id == account_id
     ).join(models.Transaction).order_by(models.LedgerEntry.id.desc()).all()
     
-    # Форматируем данные для фронтенда
     return [
         {
             "id": entry.id,
@@ -87,11 +88,12 @@ def get_account_history(account_id: int, db: Session = Depends(database.get_db))
 @app.post("/transfer/")
 def transfer_money(from_id: int, to_id: int, amount: Decimal, db: Session = Depends(database.get_db)):
     try:
-        sender = db.query(models.Account).filter(models.Account.id == from_id).first()
-        receiver = db.query(models.Account).filter(models.Account.id == to_id).first()
+        # ИЗМЕНЕНО: Проверяем, что ОБА счета активны
+        sender = db.query(models.Account).filter(models.Account.id == from_id, models.Account.is_active == True).first()
+        receiver = db.query(models.Account).filter(models.Account.id == to_id, models.Account.is_active == True).first()
         
         if not sender or not receiver:
-            raise HTTPException(status_code=404, detail="Счет не найден")
+            raise HTTPException(status_code=404, detail="Один или оба счета не найдены (или переведены в архив)")
         if sender.balance < amount:
             raise HTTPException(status_code=400, detail="Недостаточно средств")
 
@@ -112,8 +114,6 @@ def transfer_money(from_id: int, to_id: int, amount: Decimal, db: Session = Depe
     
 @app.get("/system/health")
 def check_system_integrity(db: Session = Depends(database.get_db)):
-    # 1. Проверка: Сумма всех LedgerEntry должна быть равна 0 (при переводах)
-    # Если есть только депозиты, то сумма LedgerEntry == Сумма балансов всех аккаунтов
     total_ledger_sum = db.query(func.sum(models.LedgerEntry.amount)).scalar() or Decimal("0")
     total_accounts_sum = db.query(func.sum(models.Account.balance)).scalar() or Decimal("0")
     
