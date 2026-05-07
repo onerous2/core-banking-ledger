@@ -15,6 +15,24 @@ function logout() {
     window.location.href = '/static/login.html';
 }
 
+// --- ТЕМА ---
+function initTheme() {
+    const isDark = localStorage.getItem('theme') === 'dark';
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+        const toggleBtn = document.getElementById('theme-toggle');
+        if (toggleBtn) toggleBtn.innerText = '☀️';
+    }
+}
+initTheme();
+
+function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const toggleBtn = document.getElementById('theme-toggle');
+    if (toggleBtn) toggleBtn.innerText = isDark ? '☀️' : '🌙';
+}
+
 // Загрузка информации о текущем пользователе
 async function loadUserInfo() {
     try {

@@ -247,3 +247,60 @@ header h1 {
     flex: 1; /* Чтобы кнопки были одинаковой ширины */
     margin-top: 0; 
 }
+
+/* --- Dark Theme Implemented --- */
+body.dark-theme {
+    background-color: #091123;
+    color: #d0d74c;
+}
+
+body.dark-theme .account-card,
+body.dark-theme .transfer-card,
+body.dark-theme .modal-content,
+body.dark-theme .auth-card {
+    background: #1e293b;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .account-card .balance,
+body.dark-theme .modal-content h3,
+body.dark-theme header h1 {
+    color: #ecc605;
+}
+
+body.dark-theme #current-username {
+    color: #cbd5e1 !important;
+}
+
+body.dark-theme input {
+    background: #0f172a;
+    color: #e8cc4f;
+    border: 1px solid #334155;
+}
+
+body.dark-theme .cancel-btn,
+body.dark-theme .history-btn {
+    background: #334155;
+    color: #f8fafc;
+    border: none;
+}
+
+body.dark-theme .cancel-btn:hover,
+body.dark-theme .history-btn:hover {
+    background: #475569;
+}
+
+/* --- СТИЛИ ДЛЯ СТРАНИЦЫ АВТОРИЗАЦИИ --- */
+body.dark-theme .tabs {
+    border-bottom: 2px solid #334155;
+}
+body.dark-theme .tab {
+    color: #94a3b8;
+}
+body.dark-theme .tab.active {
+    border-bottom: 2px solid #60a5fa;
+    color: #60a5fa;
+}
+body.dark-theme .auth-card h2 {
+    color: #60a5fa;
+}

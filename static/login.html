@@ -21,6 +21,9 @@
     </style>
 </head>
 <body>
+    <!-- Кнопка переключения темы -->
+    <button id="theme-toggle" onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;" title="Сменить тему">🌙</button>
+
     <div class="auth-card">
         <h2>Core Banking</h2>
         
@@ -42,6 +45,24 @@
     </div>
 
     <script>
+        // --- ТЕМА ---
+        function initTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-theme');
+                const toggleBtn = document.getElementById('theme-toggle');
+                if (toggleBtn) toggleBtn.innerText = '☀️';
+            }
+        }
+        initTheme();
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) toggleBtn.innerText = isDark ? '☀️' : '🌙';
+        }
+
         let mode = 'login';
 
         function switchTab(newMode) {
