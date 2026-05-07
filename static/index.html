@@ -11,7 +11,11 @@
     <div class="container">
         <header>
             <h1>Core Banking Ledger</h1>
-            <button class="add-account-btn" onclick="openModal()">+ Открыть новый счет</button>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="current-username" style="font-weight: 600; color: #475569;"></span>
+                <button class="add-account-btn" onclick="openModal()">+ Открыть новый счет</button>
+                <button class="cancel-btn" onclick="logout()">Выйти</button>
+            </div>
         </header>
 
         <section>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .auth-card h2 { color: #2563eb; text-align: center; margin-top: 0; margin-bottom: 30px; }
+        .tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #64748b; font-weight: 600; transition: 0.2s; }
+        .tab.active { border-bottom: 2px solid #2563eb; color: #2563eb; margin-bottom: -2px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+        .submit-btn { width: 100%; background: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .submit-btn:hover { background: #1d4ed8; }
+        #error-msg { color: #ef4444; margin-bottom: 15px; font-size: 0.9rem; text-align: center; min-height: 20px;}
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <h2>Core Banking</h2>
+        
+        <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="switchTab('login')">Вход</div>
+            <div class="tab" id="tab-register" onclick="switchTab('register')">Регистрация</div>
+        </div>
+
+        <div id="error-msg"></div>
+
+        <div class="form-group">
+            <input type="text" id="username" placeholder="Логин">
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Пароль">
+        </div>
+        
+        <button class="submit-btn" id="auth-btn" onclick="submitAuth()">Войти</button>
+    </div>
+
+    <script>
+        let mode = 'login';
+
+        function switchTab(newMode) {
+            mode = newMode;
+            document.getElementById('tab-login').className = mode === 'login' ? 'tab active' : 'tab';
+            document.getElementById('tab-register').className = mode === 'register' ? 'tab active' : 'tab';
+            document.getElementById('auth-btn').innerText = mode === 'login' ? 'Войти' : 'Зарегистрироваться';
+            document.getElementById('error-msg').innerText = '';
+        }
+
+        async function submitAuth() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-msg');
+            errorDiv.innerText = '';
+
+            if (!username || !password) return errorDiv.innerText = 'Заполните все поля';
+
+            try {
+                const res = await fetch(`/auth/${mode}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    if (mode === 'login') {
+                        localStorage.setItem('auth_token', data.token);
+                        window.location.href = '/';
+                    } else {
+                        alert('Регистрация прошла успешно! Теперь вы можете войти.');
+                        switchTab('login');
+                    }
+                } else {
+                    errorDiv.innerText = data.detail || 'Ошибка авторизации';
+                }
+            } catch (e) {
+                errorDiv.innerText = 'Ошибка соединения с сервером';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -2,6 +2,16 @@ from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, DateTime, f
 from sqlalchemy.orm import relationship
 from .database import Base  # Импорт Base строго из database.py
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    token = Column(String, unique=True, index=True)
+
+    accounts = relationship("Account", back_populates="owner")
+
 class Account(Base):
     __tablename__ = "accounts"
 
@@ -11,6 +21,9 @@ class Account(Base):
     balance = Column(Numeric(precision=18, scale=2), default=0.0)
     # ПОЛЕ ДЛЯ SOFT DELETE:
     is_active = Column(Boolean, default=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="accounts")
 
 class Transaction(Base):
     __tablename__ = "transactions"

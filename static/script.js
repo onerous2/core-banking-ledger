@@ -1,9 +1,40 @@
 const API_URL = window.location.origin;
 
+// --- АВТОРИЗАЦИЯ ---
+const token = localStorage.getItem('auth_token');
+if (!token) {
+    window.location.href = '/static/login.html';
+}
+
+const getHeaders = () => ({
+    'token': token
+});
+
+function logout() {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/static/login.html';
+}
+
+// Загрузка информации о текущем пользователе
+async function loadUserInfo() {
+    try {
+        const response = await fetch(`${API_URL}/auth/me`, { headers: getHeaders() });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('current-username').innerText = `👤 ${data.username}`;
+        } else {
+            // Если токен невалиден или устарел
+            logout();
+        }
+    } catch (err) {
+        console.error("Ошибка получения профиля:", err);
+    }
+}
+
 // 1. Загрузка списка счетов (ОБНОВЛЕННАЯ ВЕРСИЯ)
 async function loadAccounts() {
     try {
-        const response = await fetch(`${API_URL}/accounts/`);
+        const response = await fetch(`${API_URL}/accounts/`, { headers: getHeaders() });
         const accounts = await response.json();
         const listElement = document.getElementById('accounts-list');
         listElement.innerHTML = '';
@@ -43,7 +74,8 @@ async function createAccount() {
     if (!name) return alert("Введите имя и фамилию!");
 
     const response = await fetch(`${API_URL}/accounts/?owner_name=${encodeURIComponent(name)}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getHeaders()
     });
 
     if (response.ok) {
@@ -58,7 +90,8 @@ async function makeDeposit(id) {
     if (!amount || isNaN(amount) || amount <= 0) return;
 
     const response = await fetch(`${API_URL}/accounts/${id}/deposit?amount=${amount}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getHeaders()
     });
 
     if (response.ok) {
@@ -71,7 +104,8 @@ async function deleteAccount(id) {
     if (!confirm(`Вы уверены, что хотите закрыть счет ID ${id}?`)) return;
 
     const response = await fetch(`${API_URL}/accounts/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getHeaders()
     });
 
     if (response.ok) {
@@ -88,7 +122,8 @@ async function makeTransfer() {
     if (!fromId || !toId || !amount) return alert("Заполните все поля!");
 
     const response = await fetch(`${API_URL}/transfer/?from_id=${fromId}&to_id=${toId}&amount=${amount}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getHeaders()
     });
 
     if (response.ok) {
@@ -101,10 +136,11 @@ async function makeTransfer() {
 }
 
 // Первичная загрузка
+loadUserInfo();
 loadAccounts();
 
 async function showHistory(id) {
-    const response = await fetch(`${API_URL}/accounts/${id}/history`);
+    const response = await fetch(`${API_URL}/accounts/${id}/history`, { headers: getHeaders() });
     const history = await response.json();
     
     const container = document.getElementById('history-content');
