@@ -28,6 +28,9 @@ header h1 {
     color: #2563eb;
     margin: 0;
     font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 /* Кнопка "Открыть новый счет" */
